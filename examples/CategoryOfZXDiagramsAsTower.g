@@ -120,11 +120,19 @@ IsWellDefined( X_1_2_Z_2_1 );
 #! true
 
 GHZ := ( 3 * X_Spider( zx, 0, 1 ) ) * ( id + H + id ) *
-       ( X_1_2 + Z_Spider( zx, 1, 1 ) + X_1_2 ) *
-       ( id + Z_Spider( zx, 3, 1 ) + id );
+       ( id + Z_Spider( zx, 1, 2 ) + X_1_2 ) *
+       ( X_Spider( zx, 2, 1 ) + Z_2_1 + id );
 #! <A morphism in CategoryOfZXDiagrams( )>
 IsWellDefined( GHZ );
 #! true
+
+GHZ_rewritten1 := ZXFusionRule( GHZ, 1 );
+GHZ_rewritten2 := ZXFusionRule( GHZ_rewritten1, 3 );
+GHZ_rewritten3 := ZXFusionRule( GHZ_rewritten2, 6 );
+GHZ_rewritten4 := ZXIdentityRule( GHZ_rewritten3, 9 );
+GHZ_rewritten5 := ZXIdentityRule( GHZ_rewritten4, 8 );
+GHZ_rewritten6 := ZXColorChangeRule( GHZ_rewritten5, 0 );
+GHZ_rewritten7 := ZXFusionRule( GHZ_rewritten6, 0 );
 
 GHZ_quiver := Target( MorphismDatum( ModelingMorphism( zx, GHZ ) )[1] );
 #! <An object in CategoryOfDecoratedQuivers( decorating_quiver )>

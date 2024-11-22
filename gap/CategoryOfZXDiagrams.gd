@@ -73,6 +73,27 @@ DeclareOperation( "X_Spider",
 DeclareOperation( "H_Gate",
         [ IsCategoryOfZXDiagrams ] );
 
+#! @Description
+#!  Apply the fusion rule to the <A>i</A>-th edge in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i
+#! @Returns a morphism
+DeclareOperation( "ZXFusionRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt ] );
+
+#! @Description
+#!  Apply the identity rule to the <A>i</A>-th gate in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i
+#! @Returns a morphism
+DeclareOperation( "ZXIdentityRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt ] );
+
+#! @Description
+#!  Apply the color change rule to the <A>i</A>-th gate in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i
+#! @Returns a morphism
+DeclareOperation( "ZXColorChangeRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt ] );
+
 ####################################
 ##
 #! @Section Attributes

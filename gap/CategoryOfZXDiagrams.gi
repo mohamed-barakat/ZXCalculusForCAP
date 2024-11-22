@@ -491,6 +491,307 @@ InstallOtherMethod( \*,
 end );
 
 ##
+InstallMethod( ZXFusionRule,
+        "for a morphism in a category of ZX-diagrams and an integer",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt ],
+        
+  function ( zx_diagram, i )
+    local ZX, Cospans, DecoratedQuivers, lgraph, labels, inputs, outputs, arrows, pos, pair, type,
+          input_output_morphism, I, O, input_output, input, output, zx_quiver, m, l, K, k, v, e, R, r,
+          dpo, p1, y, new_input, new_output;
+    
+    ZX := CapCategory( zx_diagram );
+    
+    Assert( 0, HasModelingCategory( ZX ) );
+    
+    Cospans := ModelingCategory( ZX );
+    
+    DecoratedQuivers := UnderlyingCategory( Cospans );
+    
+    lgraph := VertexLabeledGraph( zx_diagram );
+    
+    labels := lgraph[1];
+    
+    Assert( 0, labels[1 + i] = "neutral" );
+    
+    inputs := lgraph[2];
+    outputs := lgraph[3];
+    
+    Assert( 0, not i in inputs );
+    Assert( 0, not i in outputs );
+    
+    ## at this point we know that i stands for an inner node and now we need to check its vertices
+    
+    arrows := lgraph[4];
+    
+    pos := Filtered( [ 0 .. Length( arrows ) - 1 ], a -> arrows[1 + a][1] = i );
+    
+    Assert( 0, Length( pos ) = 2 );
+    
+    pair := List( arrows{1 + pos}, pair -> pair[2] );
+    
+    ## type in [ "X", "Z" ]
+    type := Set( List( pair, v -> labels[1 + v][1] ) );
+    
+    ## the edge is either between two X-nodes or two Z-nodes
+    Assert( 0, type in [ "X", "Z" ] );
+    
+    input_output_morphism := ModelingMorphism( ZX, zx_diagram );
+    
+    I := Source( input_output_morphism );
+    O := Target( input_output_morphism );
+    
+    input_output := MorphismDatum( Cospans, input_output_morphism );
+    
+    input := input_output[1];
+    output := input_output[2];
+    
+    zx_quiver := Target( input );
+    
+    m := Subobject( zx_quiver, -1 + PositionsProperty( arrows, arrow -> arrow[2] in pair ) );
+    
+    l := LiftAlongMonomorphism( m, Subobject( zx_quiver, Difference( AsList( m.V ), [ i, pair[1], pair[2] ] ), [ ] ) );
+    
+    K := Source( l );
+    
+    k := Length( K.V );
+    
+    if type = "Z" then
+        v := 1;
+        e := 0;
+    else
+        v := 3;
+        e := 2;
+    fi;
+    
+    R := CreateDecoratedQuiver( DecoratedQuivers,
+                 Pair( Triple(
+                         k + 1,
+                         k,
+                         List( [ 0 .. k - 1 ], j -> [ j, k ] ) ),
+                       Pair( Concatenation( ListWithIdenticalEntries( k, 0 ), [ v ] ),
+                             ListWithIdenticalEntries( k, e ) ) ) );
+    
+    r := Subobject( R, [ 0 .. k - 1 ], [ ] );
+    
+    Assert( 0, Source( r ) = K );
+    
+    dpo := DPO( m, l, r );
+    
+    p1 := dpo[1];
+    y := dpo[3];
+    
+    new_input := PreCompose( Lift( input, y ), p1 );
+    new_output := PreCompose( Lift( output, y ), p1 );
+    
+    return ReinterpretationOfMorphism( ZX,
+                   Source( zx_diagram ),
+                   MorphismConstructor( Cospans,
+                           I,
+                           Pair( new_input, new_output ),
+                           O ),
+                   Target( zx_diagram ) );
+    
+end );
+
+##
+InstallMethod( ZXIdentityRule,
+        "for a morphism in a category of ZX-diagrams and an integer",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt ],
+        
+  function ( zx_diagram, i )
+    local ZX, Cospans, DecoratedQuivers, lgraph, labels, arrows, pos, pair,
+          input_output_morphism, I, O, input_output, input, output, zx_quiver, m, l, K, R, r,
+          dpo, p1, y, new_input, new_output;
+    
+    ZX := CapCategory( zx_diagram );
+    
+    Assert( 0, HasModelingCategory( ZX ) );
+    
+    Cospans := ModelingCategory( ZX );
+    
+    DecoratedQuivers := UnderlyingCategory( Cospans );
+    
+    lgraph := VertexLabeledGraph( zx_diagram );
+    
+    labels := lgraph[1];
+    
+    Assert( 0, labels[1 + i] in [ "Z", "X" ] );
+    
+    ## at this point we know that i stands for an Z or X gate with phase 0:
+    
+    arrows := lgraph[4];
+    
+    pos := Filtered( [ 0 .. Length( arrows ) - 1 ], a -> arrows[1 + a][2] = i );
+    
+    Assert( 0, Length( pos ) = 2 );
+    
+    pair := List( arrows{1 + pos}, pair -> pair[1] );
+    
+    input_output_morphism := ModelingMorphism( ZX, zx_diagram );
+    
+    I := Source( input_output_morphism );
+    O := Target( input_output_morphism );
+    
+    input_output := MorphismDatum( Cospans, input_output_morphism );
+    
+    input := input_output[1];
+    output := input_output[2];
+    
+    zx_quiver := Target( input );
+    
+    m := Subobject( zx_quiver, -1 + PositionsProperty( arrows, arrow -> arrow[2] = i ) );
+    
+    l := LiftAlongMonomorphism( m, Subobject( zx_quiver, pair, [ ] ) );
+    
+    K := Source( l );
+    
+    R := Source( Subobject( K, [ 0 ], [ ] ) );
+    
+    r := CreateDecoratedQuiverMorphism( DecoratedQuivers, K, Pair( [ 0, 0 ], [ ] ), R );
+    
+    Assert( 0, Source( r ) = K );
+    
+    dpo := DPO( m, l, r );
+    
+    p1 := dpo[1];
+    y := dpo[3];
+    
+    new_input := PreCompose( Lift( input, y ), p1 );
+    new_output := PreCompose( Lift( output, y ), p1 );
+    
+    return ReinterpretationOfMorphism( ZX,
+                   Source( zx_diagram ),
+                   MorphismConstructor( Cospans,
+                           I,
+                           Pair( new_input, new_output ),
+                           O ),
+                   Target( zx_diagram ) );
+    
+end );
+
+##
+InstallMethod( ZXColorChangeRule,
+        "for a morphism in a category of ZX-diagrams and an integer",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt ],
+        
+  function ( zx_diagram, i )
+    local ZX, Cospans, DecoratedQuivers, lgraph, type, labels, arrows, pos_arrows_adjacent_to_i, inner_neutral_nodes_adjacent_to_i, k, inputs, outputs,
+          pos_inner_arrows_adjacent_to_H_gates, adjacent_H_gates, pos_outer_arrows_adjacent_to_H_gates, outer_neutral_nodes_adjacent_to_H_gates,
+          input_output_morphism, I, O, input_output, input, output, zx_quiver, m, l, K, v, e, R, r,
+          dpo, p1, y, new_input, new_output;
+    
+    ZX := CapCategory( zx_diagram );
+    
+    Assert( 0, HasModelingCategory( ZX ) );
+    
+    Cospans := ModelingCategory( ZX );
+    
+    DecoratedQuivers := UnderlyingCategory( Cospans );
+    
+    lgraph := VertexLabeledGraph( zx_diagram );
+    
+    labels := lgraph[1];
+
+    type := labels[1 + i]{[ 1 ]};
+    
+    Assert( 0, type in [ "Z", "X" ] );
+    
+    ## at this point we know that i stands for an Z or X gate:
+    
+    arrows := lgraph[4];
+    
+    pos_arrows_adjacent_to_i := Filtered( [ 0 .. Length( arrows ) - 1 ], a -> arrows[1 + a][2] = i );
+    
+    inner_neutral_nodes_adjacent_to_i := List( arrows{1 + pos_arrows_adjacent_to_i}, pair -> pair[1] );
+    
+    k := Length( inner_neutral_nodes_adjacent_to_i );
+    
+    inputs := lgraph[2];
+    outputs := lgraph[3];
+    
+    Assert( 0, IsEmpty( Intersection( inner_neutral_nodes_adjacent_to_i, inputs ) ) );
+    Assert( 0, IsEmpty( Intersection( inner_neutral_nodes_adjacent_to_i, outputs ) ) );
+    
+    pos_inner_arrows_adjacent_to_H_gates := Filtered( [ 0 .. Length( arrows ) - 1 ], a ->
+                                                    arrows[1 + a][1] in inner_neutral_nodes_adjacent_to_i and not arrows[1 + a][2] = i );
+    
+    Assert( 0, Length( pos_inner_arrows_adjacent_to_H_gates ) = k );
+    
+    adjacent_H_gates := List( arrows{1 + pos_inner_arrows_adjacent_to_H_gates}, pair -> pair[2] );
+    
+    Assert( 0, ForAll( adjacent_H_gates, v -> labels[1 + v] = "H" ) );
+    
+    pos_outer_arrows_adjacent_to_H_gates := Filtered( [ 0 .. Length( arrows ) - 1 ], a ->
+                                                    arrows[1 + a][2] in adjacent_H_gates and not arrows[1 + a][1] in inner_neutral_nodes_adjacent_to_i );
+    
+    Assert( 0, Length( pos_outer_arrows_adjacent_to_H_gates ) = k );
+    
+    outer_neutral_nodes_adjacent_to_H_gates := List( arrows{1 + pos_outer_arrows_adjacent_to_H_gates }, pair -> pair[1] );
+    
+    input_output_morphism := ModelingMorphism( ZX, zx_diagram );
+    
+    I := Source( input_output_morphism );
+    O := Target( input_output_morphism );
+    
+    input_output := MorphismDatum( Cospans, input_output_morphism );
+    
+    input := input_output[1];
+    output := input_output[2];
+    
+    zx_quiver := Target( input );
+    
+    m := Subobject( zx_quiver, Concatenation( pos_arrows_adjacent_to_i, pos_inner_arrows_adjacent_to_H_gates, pos_outer_arrows_adjacent_to_H_gates ) );
+    
+    l := LiftAlongMonomorphism( m, Subobject( zx_quiver, outer_neutral_nodes_adjacent_to_H_gates, [ ] ) );
+    
+    K := Source( l );
+    
+    if type = "Z" then
+        v := 3;
+        e := 2;
+    else
+        v := 1;
+        e := 0;
+    fi;
+    
+    R := CreateDecoratedQuiver( DecoratedQuivers,
+                 Pair( Triple(
+                         k + 1,
+                         k,
+                         List( [ 0 .. k - 1 ], j -> [ j, k ] ) ),
+                       Pair( Concatenation( ListWithIdenticalEntries( k, 0 ), [ v ] ),
+                             ListWithIdenticalEntries( k, e ) ) ) );
+    
+    r := Subobject( R, [ 0 .. k - 1 ], [ ] );
+    
+    Assert( 0, Source( r ) = K );
+    
+    dpo := DPO( m, l, r );
+    
+    p1 := dpo[1];
+    y := dpo[3];
+    
+    new_input := PreCompose( Lift( input, y ), p1 );
+    new_output := PreCompose( Lift( output, y ), p1 );
+    
+    return ReinterpretationOfMorphism( ZX,
+                   Source( zx_diagram ),
+                   MorphismConstructor( Cospans,
+                           I,
+                           Pair( new_input, new_output ),
+                           O ),
+                   Target( zx_diagram ) );
+    
+end );
+
+####################################
+#
+# View and Display methods
+#
+####################################
+
+##
 InstallMethod( ViewString,
         "for an object in a category of ZX-diagrams",
         [ IsObjectInCategoryOfZXDiagrams ],

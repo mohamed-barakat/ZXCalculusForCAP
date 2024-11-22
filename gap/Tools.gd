@@ -45,3 +45,10 @@ DeclareGlobalFunction( "ImportFromQGraphString" );
 #! @Arguments category, filename
 #! @Returns a morphism
 DeclareGlobalFunction( "ImportFromQGraphFile" );
+
+#! @Description
+#!   Takes a morphism the category of ZX diagrams and returns a dot-file.
+#! @Arguments mor
+#! @Returns a string
+DeclareOperation( "DotVertexLabelledDigraph",
+        [ IsMorphismInCategoryOfZXDiagrams ] );
