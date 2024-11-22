@@ -79,7 +79,7 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
                 
             elif label = "H" then
                 
-                return "yellow";
+                return "orange";
                 
             elif StartsWith( label, "Z" ) then
                 

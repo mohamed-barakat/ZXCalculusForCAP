@@ -501,3 +501,125 @@ if IsPackageMarkedForLoading( "json", "2.1.1" ) then
     end );
     
 fi;
+
+##
+InstallMethod( DotVertexLabelledDigraph,
+        [ IsMorphismInCategoryOfZXDiagrams ],
+
+  function( zx_diagram )
+    local str, tuple, input, output, edges, inp, out, int, labels, input_output, inner_nodes, neutral_nodes, i, label;
+    
+    str := Concatenation(
+                   "//dot\n",
+                   "digraph ZX_diagram{\n",
+                   "rankdir=\"LR\"\n",
+                   "minlen=0\n",
+                   "layout=\"dot\"\n",
+                   "node [shape=circle width=0.2 height=0 style=filled]\n",
+                   "edge [dir=none]\n\n" );
+    
+    tuple := ZX_RemovedInnerNeutralNodes( MorphismDatum( zx_diagram ) );
+    
+    labels := tuple[1];
+    input := tuple[2];
+    output := tuple[3];
+    edges := tuple[4];
+
+    ## [ 0, 1, 0, 1, 2 ] -> [ 0, 1 ]
+    inp := Filtered( DuplicateFreeList( input ), k -> Length( Positions( input, k ) ) = 2 );
+    
+    edges := Concatenation( edges, List( inp, k -> [ Concatenation( "i_1_", String( k ) ), Concatenation( "i_2_", String( k ) ) ] ) );
+    
+    ## [ 0, 1, 0, 1, 2 ] -> [ "i_1_0", "i_1_1", "i_2_0", "i_2_1", 2 ]
+    input := List( [ 1 .. Length( input ) ], function( p ) local k; k := input[p];
+        if not k in inp then return k; else return Concatenation( "i_", String( Position( Positions( input, k ), p ) ), "_", String( k ) ); fi; end );
+    
+    ## [ 3, 4, 5, 3, 4 ] -> [ 3, 4 ]
+    out := Filtered( DuplicateFreeList( output ), k -> Length( Positions( output, k ) ) = 2 );
+    
+    edges := Concatenation( edges, List( out, k -> [ Concatenation( "o_1_", String( k ) ), Concatenation( "o_2_", String( k ) ) ] ) );
+    
+    ## [ 3, 4, 5, 3, 4 ] -> [ "o_1_3", "o_1_4", 5, "o_2_3", "o_2_4" ]
+    output := List( [ 1 .. Length( output ) ], function( p ) local k; k := output[p];
+        if not k in out then return k; else return Concatenation( "o_", String( Position( Positions( output, k ), p ) ), "_", String( k ) ); fi; end );
+    
+    ## inputs that are also outputs
+    int := Intersection( input, output );
+    
+    edges := Concatenation( edges, List( int, k -> [ Concatenation( "i_", String( k ) ), Concatenation( "o_", String( k ) ) ] ) );
+    
+    input := List( input, function( k ) if k in int then return Concatenation( "i_", String( k ) ); else return k; fi; end );
+    output := List( output, function( k ) if k in int then return Concatenation( "o_", String( k ) ); else return k; fi; end );
+    
+    input_output := Union( input, output );
+    
+    str := Concatenation( str,
+                   "subgraph cluster_input {\n",
+                   "style=rounded\n",
+                   "label=\"input\"\n" );
+    
+    str := Concatenation( str,
+                   Concatenation( List( [ 1 .. Length( input ) ], i ->
+                           Concatenation( String( input[i] ),
+                                   " [label=\"\" ",
+                                   "pos=\"0,", String( i ),
+                                   "!\" width=0.1 color=\"black\"]\n" ) ) ),
+                   "}\n\n" );
+    
+    str := Concatenation( str,
+                   "subgraph cluster_output {\n",
+                   "style=rounded\n",
+                   "label=\"output\"\n" );
+    
+    str := Concatenation( str,
+                   Concatenation( List( [ 1 .. Length( output ) ], i ->
+                           Concatenation( String( output[i] ),
+                                   " [label=\"\" ",
+                                   "pos=\"1,", String( i ),
+                                   "!\" width=0.1 color=\"black\"]\n" ) ) ),
+                   "}\n\n" );
+    
+    str := Concatenation( str, "subgraph cluster_circuit{\n" );
+    
+    inner_nodes := Difference( [ 0 .. Length( labels ) - 1 ], input_output );
+    
+    neutral_nodes := Filtered( inner_nodes, i -> labels[1 + i] = "neutral" );
+    
+    inner_nodes := Filtered( inner_nodes, i -> not labels[1 + i] = "neutral" );
+    
+    for i in inner_nodes do
+        
+        label := labels[1 + i];
+        str := Concatenation( str, String( i ) );
+        
+        if label[1] = 'H' then
+            str := Concatenation( str, " [label=\"\" shape=\"square\" color=\"orange\"]" );
+        elif label[1] = 'X' then
+            if Length( label ) > 1 then
+                str := Concatenation( str, " [label=\"", label{[ 2 .. Length( label )]}, "\" color=\"tomato\"]" );
+            else
+                str := Concatenation( str, " [label=\"\" color=\"tomato\"]" );
+            fi;
+        elif label[1] = 'Z' then
+            if Length( label ) > 1 then
+                str := Concatenation( str, " [label=\"", label{[ 2 .. Length( label )]}, "\" color=\"lightgreen\"]" );
+            else
+                str := Concatenation( str, " [label=\"\" color=\"lightgreen\"]" );
+            fi;
+        fi;
+        
+        str := Concatenation( str, "\n" );
+        
+    od;
+    
+    str := Concatenation( str, "}\n\n" );
+    
+    for i in edges do
+        str := Concatenation( str, String( i[1] ), " -> ", String( i[2] ), "\n" );
+    od;
+    
+    str := Concatenation( str, "}\n" );
+    
+    return str;
+    
+end );

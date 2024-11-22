@@ -469,6 +469,28 @@ InstallOtherMethod( \+,
 end );
 
 ##
+InstallOtherMethod( \*,
+        "for an integer and a morphism in a category of ZX-diagrams",
+        [ IsInt, IsMorphismInCategoryOfZXDiagrams ],
+        
+  function ( m, zx_diagram )
+    
+    return Iterated( ListWithIdenticalEntries( m, zx_diagram ), \+, IdentityMorphism( TensorUnit( CapCategory( zx_diagram ) ) ) );
+    
+end );
+
+##
+InstallOtherMethod( \*,
+        "for an integer and an object in a category of ZX-diagrams",
+        [ IsInt, IsObjectInCategoryOfZXDiagrams ],
+        
+  function ( m, qubits )
+    
+    return Iterated( ListWithIdenticalEntries( m, qubits ), \+, TensorUnit( CapCategory( qubits ) ) );
+    
+end );
+
+##
 InstallMethod( ViewString,
         "for an object in a category of ZX-diagrams",
         [ IsObjectInCategoryOfZXDiagrams ],
