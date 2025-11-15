@@ -126,10 +126,31 @@ GHZ := ( 3 * X_Spider( zx, 0, 1 ) ) * ( id + H + id ) *
 IsWellDefined( GHZ );
 #! true
 
+GHZ_rewritten1 := ZXFusionRule( GHZ, 1 );
+GHZ_rewritten2 := ZXFusionRule( GHZ_rewritten1, 3 );
+GHZ_rewritten3 := ZXFusionRule( GHZ_rewritten2, 6 );
+GHZ_rewritten4 := ZXIdentityRule( GHZ_rewritten3, 9 );
+GHZ_rewritten5 := ZXIdentityRule( GHZ_rewritten4, 8 );
+GHZ_rewritten6 := ZXColorChangeRule( GHZ_rewritten5, 0 );
+GHZ_rewritten7 := ZXFusionRule( GHZ_rewritten6, 0 );
+
 GHZ_quiver := Target( MorphismDatum( ModelingMorphism( zx, GHZ ) )[1] );
 #! <An object in CategoryOfDecoratedQuivers( decorating_quiver )>
 IsWellDefined( GHZ_quiver );
 #! true
+
+braid := Braiding( one, one );
+Z_0_1 := Z_Spider( zx, 0, 1 );
+X_1_0 := X_Spider( zx, 1, 0 );
+Z_1_2 := Z_Spider( zx, 1, 2 );
+X_2_1 := X_Spider( zx, 2, 1 );
+
+diagram_bialgebra := (Z_0_1 * Z_1_2 + Z_1_2) * (id + braid + id ) * ( X_2_1 * X_1_0 + X_2_1 );
+
+diagram_bialgebra_rewritten := ZXBialgebraRule( diagram_bialgebra, 6, 2, 9, 12 );
+Assert( 0, IsWellDefined( diagram_bialgebra_rewritten ) );
+
+DotVertexLabelledDigraph( diagram_bialgebra_rewritten );
 
 tmp_dir := DirectoryTemporary( );;
 
