@@ -73,6 +73,45 @@ DeclareOperation( "X_Spider",
 DeclareOperation( "H_Gate",
         [ IsCategoryOfZXDiagrams ] );
 
+#! @Description
+#!  The input is a category <A>ZX</A> of ZX-diagrams, a ZX-diagram therein <A>zx_diagram</A>,
+#!  and three morphisms in the underlying category of decorated quivers, of which
+#!  the first is the matching morphism <A>m</A>, the second is left rule <A>l</A>,
+#!  and the third is the right rule <A>r</A>.
+#! @Arguments ZX, zx_diagram, m, l, r
+#! @Returns a morphism
+DeclareOperation( "ZX_DPO_Rewriting",
+        [ IsCategoryOfZXDiagrams, IsMorphismInCategoryOfZXDiagrams,
+          IsMorphismInCategoryOfDecoratedQuivers, IsMorphismInCategoryOfDecoratedQuivers, IsMorphismInCategoryOfDecoratedQuivers ] );
+
+#! @Description
+#!  Apply the fusion rule to the <A>i</A>-th edge in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i
+#! @Returns a morphism
+DeclareOperation( "ZXFusionRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt ] );
+
+#! @Description
+#!  Apply the identity rule to the <A>i</A>-th gate in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i
+#! @Returns a morphism
+DeclareOperation( "ZXIdentityRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt ] );
+
+#! @Description
+#!  Apply the color change rule to the <A>i</A>-th gate in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i
+#! @Returns a morphism
+DeclareOperation( "ZXColorChangeRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt ] );
+
+#! @Description
+#!  Apply the bialgebra rule to the two Z-spiders <A>z1</A>, <A>z2</A> and the two X-spiders <A>x1</A>, <A>x2</A> in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, z1, z2, x1, x2
+#! @Returns a morphism
+DeclareOperation( "ZXBialgebraRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt, IsInt, IsInt, IsInt ] );
+
 ####################################
 ##
 #! @Section Attributes
