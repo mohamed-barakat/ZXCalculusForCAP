@@ -85,6 +85,7 @@ Dependencies := rec(
   NeededOtherPackages := [
       [ "CAP", ">= 2025.06-06" ],
       [ "MonoidalCategories", ">= 2023.05-03" ], # monoidal structure
+      [ "Toposes", ">= 2025.08-03" ],
       [ "FinSetsForCAP", ">= 2025.12-07" ], # SKELETAL_FIN_SETS_ExplicitCoequalizer
   ],
   SuggestedOtherPackages := [
