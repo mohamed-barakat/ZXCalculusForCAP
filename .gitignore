@@ -24,6 +24,8 @@
 /gen/
 /Makefile
 
+/examples/notebooks/.ipynb_checkpoints/
+
 /tmp/
 /gh-pages/
 
