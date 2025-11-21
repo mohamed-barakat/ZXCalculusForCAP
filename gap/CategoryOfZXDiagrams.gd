@@ -92,11 +92,25 @@ DeclareOperation( "ZXFusionRule",
         [ IsMorphismInCategoryOfZXDiagrams, IsInt ] );
 
 #! @Description
+#!  Apply the inverse of fusion rule to the <A>i</A>-th edge in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i
+#! @Returns a morphism
+DeclareOperation( "ZXInverseFusionRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt ] );
+
+#! @Description
 #!  Apply the identity rule to the <A>i</A>-th gate in the ZX-diagram <A>mor</A>.
 #! @Arguments mor, i
 #! @Returns a morphism
 DeclareOperation( "ZXIdentityRule",
         [ IsMorphismInCategoryOfZXDiagrams, IsInt ] );
+
+#! @Description
+#!  Apply the identity rule to the <A>i</A>-th gate in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i
+#! @Returns a morphism
+DeclareOperation( "ZXInverseIdentityRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt, IsString ] );
 
 #! @Description
 #!  Apply the color change rule to the <A>i</A>-th gate in the ZX-diagram <A>mor</A>.
@@ -106,11 +120,39 @@ DeclareOperation( "ZXColorChangeRule",
         [ IsMorphismInCategoryOfZXDiagrams, IsInt ] );
 
 #! @Description
+#!  Apply the color change rule to the <A>i</A>-th gate in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i
+#! @Returns a morphism
+DeclareOperation( "ZXInverseColorChangeRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt ] );
+
+#! @Description
 #!  Apply the bialgebra rule to the two Z-spiders <A>z1</A>, <A>z2</A> and the two X-spiders <A>x1</A>, <A>x2</A> in the ZX-diagram <A>mor</A>.
 #! @Arguments mor, z1, z2, x1, x2
 #! @Returns a morphism
 DeclareOperation( "ZXBialgebraRule",
         [ IsMorphismInCategoryOfZXDiagrams, IsInt, IsInt, IsInt, IsInt ] );
+
+#! @Description
+#!  Apply the rule to the <A>i, j</A>-th gate in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i, j
+#! @Returns a morphism
+DeclareOperation( "ZXInverseBialgebraRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt, IsInt ] );
+
+#! @Description
+#!  Apply the copy rule to the <A>i, j</A>-th gate in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i, j
+#! @Returns a morphism
+DeclareOperation( "ZXCopyRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt, IsInt ] );
+
+#! @Description
+#!  Apply the copy rule to the <A>i, j</A>-th gate in the ZX-diagram <A>mor</A>.
+#! @Arguments mor, i, j
+#! @Returns a morphism
+DeclareOperation( "ZXCongruenceRule",
+        [ IsMorphismInCategoryOfZXDiagrams, IsInt, IsInt ] );
 
 ####################################
 ##
