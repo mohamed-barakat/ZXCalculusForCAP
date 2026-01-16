@@ -547,8 +547,8 @@ InstallMethod( ZXFusionRule,
         [ IsMorphismInCategoryOfZXDiagrams, IsInt ],
         
   function ( zx_diagram, i )
-    local ZX, Cospans, DecoratedQuivers, lgraph, labels, inputs, outputs, arrows, pos, pair, type,
-          zx_quiver, m, l, K, k, v, e, R, r;
+    local ZX, Cospans, DecoratedQuivers, lgraph, labels, inputs, outputs, arrows, a, pos, pair, type,
+          ZX_without_IO, l1c, l2c, c, c1, c2, l1, l2, rewriting_rule, zx_quiver, l_r, l, r, m;
     
     ZX := CapCategory( zx_diagram );
     
@@ -574,7 +574,9 @@ InstallMethod( ZXFusionRule,
     
     arrows := lgraph[4];
     
-    pos := Filtered( [ 0 .. Length( arrows ) - 1 ], a -> arrows[1 + a][1] = i );
+    a := Length( arrows );
+    
+    pos := Filtered( [ 0 .. a - 1 ], a -> arrows[1 + a][1] = i );
     
     Assert( 0, Length( pos ) = 2 );
     
@@ -583,33 +585,42 @@ InstallMethod( ZXFusionRule,
     ## type in [ "X", "Z" ]
     type := Set( List( pair, v -> labels[1 + v][1] ) );
     
+    ConvertToStringRep( type );
+    
     ## the edge is either between two X-nodes or two Z-nodes
     Assert( 0, type in [ "X", "Z" ] );
     
+    ZX_without_IO := UnderlyingCategoryOfZXDiagramsWithoutIO( ZX );
+    
+    l1c := Filtered( [ 0 .. a - 1 ], j -> arrows[1 + j][2] = pair[1] );
+    l2c := Filtered( [ 0 .. a - 1 ], j -> arrows[1 + j][2] = pair[2] );
+    
+    c := Intersection( List( l1c, j -> arrows[1 + j][1] ), List( l2c, j -> arrows[1 + j][1] ) );
+    
+    c1 := Filtered( l1c, j -> arrows[1 + j][1] in c );
+    c2 := Filtered( l2c, j -> arrows[1 + j][1] in c );
+    
+    l1 := Difference( l1c, c1 );
+    l2 := Difference( l2c, c2 );
+    
+    rewriting_rule := ZXFusionRule( ZX_without_IO, type, Length( c ), Length( l1 ), Length( l2 ) );
+    
+    l_r := UnderlyingSpan( rewriting_rule )[2];
+    
+    l := UnderlyingCell( ModelingMorphism( ZX_without_IO, l_r[1] ) );
+    r := UnderlyingCell( ModelingMorphism( ZX_without_IO, l_r[2] ) );
+    
     zx_quiver := Target( MorphismDatum( Cospans, ModelingMorphism( ZX, zx_diagram ) )[1] );
     
-    m := Subobject( zx_quiver, -1 + PositionsProperty( arrows, arrow -> arrow[2] in pair ) );
-    
-    l := LiftAlongMonomorphism( m, Subobject( zx_quiver, Difference( AsList( m.V ), [ i, pair[1], pair[2] ] ), [ ] ) );
-    
-    K := Source( l );
-    
-    k := Length( K.V );
-    
-    v := ZX_LabelToInteger( type );
-    e := v - 1;
-    
-    R := CreateDecoratedQuiver( DecoratedQuivers,
-                 Pair( Triple(
-                         k + 1,
-                         k,
-                         List( [ 0 .. k - 1 ], j -> Pair( j, k ) ) ),
-                       Pair( Concatenation( ListWithIdenticalEntries( k, 0 ), [ v ] ),
-                             ListWithIdenticalEntries( k, e ) ) ) );
-    
-    r := Subobject( R, [ 0 .. k - 1 ], [ ] );
-    
-    Assert( 0, Source( r ) = K );
+    m := CreateDecoratedQuiverMorphism( DecoratedQuivers,
+                 Target( l ),
+                 Pair( Concatenation(
+                         List( l1, j -> arrows[1 + j][1] ),
+                         List( l2, j -> arrows[1 + j][1] ),
+                         c,
+                         pair ),
+                       Concatenation( l1, l2, c1, c2 ) ),
+                 zx_quiver );
     
     return ZX_DPO_Rewriting( ZX, zx_diagram, m, l, r );
     

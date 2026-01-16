@@ -11,7 +11,8 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
     [ "FinalizeCategory", true ],
   ],
   function ( CAP_NAMED_ARGUMENTS )
-    local object_datum_type, object_constructor, object_datum,
+    local name, category_filter, category_object_filter, category_morphism_filter,
+          object_datum_type, object_constructor, object_datum,
           morphism_datum_type, morphism_constructor, morphism_datum,
           S_ZX, decorated_quivers, FinalizeCategory, csp,
           modeling_tower_object_constructor, modeling_tower_object_datum,
@@ -19,11 +20,18 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
           ZX;
     
     ##
-    object_datum_type := IsBigInt;
+    name := "CategoryOfZXDiagrams( )";
     
     ##
+    category_filter := IsCategoryOfZXDiagrams;
+    category_object_filter := IsObjectInCategoryOfZXDiagrams;
+    category_morphism_filter := IsMorphismInCategoryOfZXDiagrams;
+    
+    ##
+    object_datum_type := IsBigInt;
+    
     object_constructor :=
-      function ( cat, integer )
+      function ( ZX, integer )
         local obj;
         
         if not (IsBigInt( integer ) and integer >= 0) then
@@ -33,23 +41,23 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
             
         fi;
         
-        obj := CreateCapCategoryObjectWithAttributes( cat, AsInteger, integer );
+        obj := CreateCapCategoryObjectWithAttributes( ZX, AsInteger, integer );
         
         #% CAP_JIT_DROP_NEXT_STATEMENT
-        Assert( 0, IsWellDefinedForObjects( cat, obj ) );
+        Assert( 0, IsWellDefinedForObjects( ZX, obj ) );
         
         return obj;
         
     end;
     
-    ##
     object_datum :=
-      function ( cat, object )
+      function ( ZX, object )
         
         return AsInteger( object );
         
     end;
     
+    ##
     morphism_datum_type :=
       CapJitDataTypeOfNTupleOf( 4,
               CapJitDataTypeOfListOf( IsStringRep ),
@@ -58,24 +66,26 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
               CapJitDataTypeOfListOf( CapJitDataTypeOfNTupleOf( 2, IsBigInt, IsBigInt ) ) );
     
     morphism_constructor :=
-      function ( cat, source, quadruple, range )
+      function ( ZX, source, quadruple, target )
         local mor;
         
-        mor := CreateCapCategoryMorphismWithAttributes( cat, source, range, VertexLabeledGraph, quadruple );
+        mor := CreateCapCategoryMorphismWithAttributes( ZX, source, target, VertexLabeledGraph, quadruple );
         
         #% CAP_JIT_DROP_NEXT_STATEMENT
-        Assert( 0, IsWellDefinedForMorphisms( cat, mor ) );
+        Assert( 0, IsWellDefinedForMorphisms( ZX, mor ) );
         
         return mor;
         
     end;
     
     morphism_datum :=
-      function ( cat, morphism )
+      function ( ZX, morphism )
         
         return VertexLabeledGraph( morphism );
         
     end;
+    
+    ## building the categorical tower:
     
     # expanded version of: S_ZX := CreateQuiver( Length( S_ZX_NODES ), S_ZX_EDGES );
     S_ZX := CreateCapCategoryObjectWithAttributes( FinQuivers,
@@ -178,7 +188,7 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
     
     ## from the raw object data to the object in the modeling category
     modeling_tower_object_constructor :=
-      function ( cat, integer )
+      function ( ZX, integer )
         local csp, decorated_quivers, decorated_quiver, obj;
         
         if not (IsBigInt( integer ) and integer >= 0) then
@@ -188,7 +198,7 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
             
         fi;
         
-        csp := ModelingCategory( cat );
+        csp := ModelingCategory( ZX );
         
         decorated_quivers := UnderlyingCategory( csp );
         
@@ -211,10 +221,10 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
     end;
     
     ## from the object in the modeling category to the raw object data
-    modeling_tower_object_datum := function ( cat, object )
+    modeling_tower_object_datum := function ( ZX, object )
       local csp, decorated_quivers, pair, integer;
         
-        csp := ModelingCategory( cat );
+        csp := ModelingCategory( ZX );
         
         decorated_quivers := UnderlyingCategory( csp );
         
@@ -236,13 +246,13 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
     
     ## from the raw morphism data to the morphism in the modeling category
     modeling_tower_morphism_constructor :=
-      function ( cat, source, quadruple, range )
+      function ( ZX, source, quadruple, target )
         local csp, decorated_quivers, labels, edges, input_positions, output_positions,
-              source_decorated_quiver, source_pair, range_decorated_quiver, range_pair,
+              source_decorated_quiver, source_pair, target_decorated_quiver, target_pair,
               nr_vertices, nr_edges, decorations_of_vertices, decorations_of_edges,
               central_decorated_quiver, input_morphism, output_morphism, morphism_pair, mor;
         
-        csp := ModelingCategory( cat );
+        csp := ModelingCategory( ZX );
         
         decorated_quivers := UnderlyingCategory( csp );
         
@@ -254,8 +264,8 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
         source_decorated_quiver := ObjectDatum( csp, source );
         source_pair := ObjectDatum( decorated_quivers, source_decorated_quiver );
         
-        range_decorated_quiver := ObjectDatum( csp, range );
-        range_pair := ObjectDatum( decorated_quivers, range_decorated_quiver );
+        target_decorated_quiver := ObjectDatum( csp, target );
+        target_pair := ObjectDatum( decorated_quivers, target_decorated_quiver );
         
         nr_vertices := Length( labels );
         nr_edges := Length( edges );
@@ -293,7 +303,7 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
                                   central_decorated_quiver );
         
         output_morphism := MorphismConstructor( decorated_quivers,
-                                   range_decorated_quiver,
+                                   target_decorated_quiver,
                                    Pair( output_positions, CapJitTypedExpression( [ ], { } -> CapJitDataTypeOfListOf( IsBigInt ) ) ),
                                    central_decorated_quiver );
         
@@ -305,7 +315,7 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
         
         morphism_pair := Pair( input_morphism, output_morphism );
         
-        mor := MorphismConstructor( csp, source, morphism_pair, range );
+        mor := MorphismConstructor( csp, source, morphism_pair, target );
         
         #% CAP_JIT_DROP_NEXT_STATEMENT
         Assert( 0, IsWellDefinedForMorphisms( csp, mor ) );
@@ -316,11 +326,11 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
     
     ## from the morphism in the modeling category to the raw morphism data
     modeling_tower_morphism_datum :=
-      function ( cat, morphism )
+      function ( ZX, morphism )
         local csp, decorated_quivers, morphism_pair, input_morphism, output_morphism,
-              source_decorated_quiver, range_decorated_quiver, central_decorated_quiver, central_decorated_quiver_data, nr_vertices, decorations_of_vertices, input_positions, output_positions, labels, edges;
+              source_decorated_quiver, target_decorated_quiver, central_decorated_quiver, central_decorated_quiver_data, nr_vertices, decorations_of_vertices, input_positions, output_positions, labels, edges;
         
-        csp := ModelingCategory( cat );
+        csp := ModelingCategory( ZX );
         
         decorated_quivers := UnderlyingCategory( csp );
         
@@ -330,9 +340,9 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
         output_morphism := morphism_pair[2];
         
         source_decorated_quiver := Source( input_morphism );
-        range_decorated_quiver := Source( output_morphism );
+        target_decorated_quiver := Source( output_morphism );
         
-        central_decorated_quiver := Range( input_morphism );
+        central_decorated_quiver := Target( input_morphism );
         
         central_decorated_quiver_data := ObjectDatum( decorated_quivers, central_decorated_quiver );
         
@@ -356,23 +366,26 @@ InstallGlobalFunction( CategoryOfZXDiagrams_as_CategoryOfCospans_CategoryOfDecor
         
     end;
     
-    ZX := ReinterpretationOfCategory( csp, rec(
-        name := "CategoryOfZXDiagrams( )",
-        category_filter := IsCategoryOfZXDiagrams,
-        category_object_filter := IsObjectInCategoryOfZXDiagrams,
-        category_morphism_filter := IsMorphismInCategoryOfZXDiagrams,
-        object_datum_type := object_datum_type,
-        morphism_datum_type := morphism_datum_type,
-        object_constructor := object_constructor,
-        object_datum := object_datum,
-        morphism_constructor := morphism_constructor,
-        morphism_datum := morphism_datum,
-        modeling_tower_object_constructor := modeling_tower_object_constructor,
-        modeling_tower_object_datum := modeling_tower_object_datum,
-        modeling_tower_morphism_constructor := modeling_tower_morphism_constructor,
-        modeling_tower_morphism_datum := modeling_tower_morphism_datum,
-        only_primitive_operations := true,
-    ) : FinalizeCategory := false );
+    ZX :=
+      ReinterpretationOfCategory( csp,
+              rec( name := name,
+                   category_filter := category_filter,
+                   category_object_filter := category_object_filter,
+                   category_morphism_filter := category_morphism_filter,
+                   object_datum_type := object_datum_type,
+                   morphism_datum_type := morphism_datum_type,
+                   object_constructor := object_constructor,
+                   object_datum := object_datum,
+                   morphism_constructor := morphism_constructor,
+                   morphism_datum := morphism_datum,
+                   modeling_tower_object_constructor := modeling_tower_object_constructor,
+                   modeling_tower_object_datum := modeling_tower_object_datum,
+                   modeling_tower_morphism_constructor := modeling_tower_morphism_constructor,
+                   modeling_tower_morphism_datum := modeling_tower_morphism_datum,
+                   only_primitive_operations := true )
+              : FinalizeCategory := false );
+    
+    SetUnderlyingCategoryOfZXDiagramsWithoutIO( ZX, CategoryOfZXDiagramsWithoutIO( decorated_quivers ) );
     
     if not CAP_NAMED_ARGUMENTS.no_precompiled_code then
         
