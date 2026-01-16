@@ -505,12 +505,263 @@ if IsPackageMarkedForLoading( "json", "2.1.1" ) then
 fi;
 
 ##
+InstallMethod( ForgetIO,
+        "for a ZX-diagram",
+        [ IsMorphismInCategoryOfZXDiagrams ],
+        
+  function( zx_diagram )
+    local zx_wo_io;
+    
+    zx_wo_io := UnderlyingCategoryOfZXDiagramsWithoutIO( CapCategory( zx_diagram ) );
+    
+    return MorphismDatum( zx_diagram ){[1,4]} / zx_wo_io;
+    
+end );
+
+##
+InstallMethod( DotVertexLabelledDigraph,
+        "for a ZX-diagram without IO",
+        [ IsObjectInCategoryOfZXDiagramsWithoutIO ],
+        
+  function( zx_diagram )
+    local str, pair, labels, edges, sources, outer_nodes, all_inner_nodes, neutral_inner_nodes, inner_nodes,
+          i, label, outer_edges, inner_edges, connected_neutral_inner_nodes;
+    
+    str := Concatenation(
+                   "//dot\n",
+                   "digraph ZX_diagram_without_IO{\n",
+                   "rankdir=\"LR\"\n",
+                   "minlen=0\n",
+                   "layout=\"dot\"\n",
+                   "node [shape=circle width=0.2 height=0 style=filled fontsize=\"10\"]\n",
+                   "edge [dir=none fontsize=\"10\"]\n\n" );
+    
+    pair := ObjectDatum( zx_diagram );
+    
+    labels := pair[1];
+    edges := pair[2];
+    
+    sources := List( edges, e -> e[1] );
+    
+    outer_nodes := Filtered( [ 0 .. Length( labels ) - 1 ], i -> labels[1 + i] = "neutral" and Length( Positions( sources, i ) ) <= 1 );
+    
+    str := Concatenation( str,
+                   Concatenation( List( [ 1 .. Length( outer_nodes ) ], i ->
+                           Concatenation( String( outer_nodes[i] ),
+                                   " [xlabel=\"", String( outer_nodes[i] ), "\" label=\"\" width=0.1 color=\"black\"]\n" ) ) ),
+                   "\n" );
+    
+    all_inner_nodes := Difference( [ 0 .. Length( labels ) - 1 ], outer_nodes );
+    
+    neutral_inner_nodes := Filtered( all_inner_nodes, i -> labels[1 + i] = "neutral" );
+    
+    inner_nodes := Filtered( all_inner_nodes, i -> not labels[1 + i] = "neutral" );
+    
+    for i in inner_nodes do
+        
+        label := labels[1 + i];
+        str := Concatenation( str, String( i ) );
+        
+        if label[1] = 'H' then
+            str := Concatenation( str, " [xlabel=\"", String( i ), "\" label=\"\" shape=\"square\" color=\"orange\"]" );
+        elif label[1] = 'X' then
+            if Length( label ) > 1 then
+                str := Concatenation( str, " [xlabel=\"", String( i ), "\" label=\"", label{[ 2 .. Length( label )]}, "\" color=\"tomato\"]" );
+            else
+                str := Concatenation( str, " [xlabel=\"", String( i ), "\" label=\"\" color=\"tomato\"]" );
+            fi;
+        elif label[1] = 'Z' then
+            if Length( label ) > 1 then
+                str := Concatenation( str, " [xlabel=\"", String( i ), "\" label=\"", label{[ 2 .. Length( label )]}, "\" color=\"lightgreen\"]" );
+            else
+                str := Concatenation( str, " [xlabel=\"", String( i ), "\" label=\"\" color=\"lightgreen\"]" );
+            fi;
+        fi;
+        
+        str := Concatenation( str, "\n" );
+        
+    od;
+    
+    str := Concatenation( str, "\n" );
+        
+    ## the edges from the outer nodes to the circuit cluster
+    outer_edges := Filtered( edges, edge -> not edge[1] in neutral_inner_nodes );
+    
+    for i in outer_edges do
+        str := Concatenation( str, String( i[1] ), " -> ", String( i[2] ), "\n" );
+    od;
+    
+    str := Concatenation( str, "\n" );
+    
+    ## the edges within the circuit cluster
+    inner_edges := Filtered( edges, edge -> edge[1] in neutral_inner_nodes );
+    
+    ## ignore those which are not connected to any other node, see PreCompose( CoevaluationForDual( qubit ), EvaluationForDual( qubit ) )
+    connected_neutral_inner_nodes := Intersection( List( inner_edges, edge -> edge[1] ), neutral_inner_nodes );
+    
+    for i in connected_neutral_inner_nodes do
+        pair := Filtered( inner_edges, edge -> edge[1] = i );
+        Assert( 0, Length( pair ) = 2 );
+        str := Concatenation( str, String( pair[1][2] ), " -> ", String( pair[2][2] ), " [label=\"", String( pair[1][1] ), "\"] \n" );
+    od;
+    
+    str := Concatenation( str, "}\n" );
+    
+    return str;
+    
+end );
+
+MakeShowable( [ "image/svg+xml" ], IsObjectInCategoryOfZXDiagramsWithoutIO );
+
+##
+InstallOtherMethod( SvgString,
+        "for a ZX-diagram without IO",
+        [ IsObjectInCategoryOfZXDiagramsWithoutIO ],
+        
+  function ( zx_diagram )
+    
+    return DotToSVG( DotVertexLabelledDigraph( zx_diagram ) );
+    
+end );
+
+##
+InstallMethod( DotVertexLabelledDigraph,
+        "for a monomorphism between ZX-diagram without IO",
+        [ IsMorphismInCategoryOfZXDiagramsWithoutIO ],
+        
+  function( mor )
+    local str, pair, labels, edges, sources, outer_nodes, all_inner_nodes, neutral_inner_nodes, inner_nodes,
+          images_nodes, images_edges, i, label, outer_edges, inner_edges, connected_neutral_inner_nodes;
+    
+    Assert( 0, IsMonomorphism( mor ) );
+    
+    str := Concatenation(
+                   "//dot\n",
+                   "digraph subobject_ZX_diagram_without_IO{\n",
+                   "rankdir=\"LR\"\n",
+                   "minlen=0\n",
+                   "layout=\"dot\"\n",
+                   "node [shape=circle width=0.2 height=0 style=filled fontsize=\"10\"]\n",
+                   "edge [dir=none fontsize=\"10\"]\n\n" );
+    
+    pair := ObjectDatum( Target( mor ) );
+    
+    labels := pair[1];
+    edges := pair[2];
+    
+    sources := List( edges, e -> e[1] );
+    
+    outer_nodes := Filtered( [ 0 .. Length( labels ) - 1 ], i -> labels[1 + i] = "neutral" and Length( Positions( sources, i ) ) <= 1 );
+    
+    str := Concatenation( str,
+                   Concatenation( List( [ 1 .. Length( outer_nodes ) ], i ->
+                           Concatenation( String( outer_nodes[i] ),
+                                   " [xlabel=\"", String( outer_nodes[i] ), "\" label=\"\" width=0.1 color=\"black\"]\n" ) ) ),
+                   "\n" );
+    
+    all_inner_nodes := Difference( [ 0 .. Length( labels ) - 1 ], outer_nodes );
+    
+    neutral_inner_nodes := Filtered( all_inner_nodes, i -> labels[1 + i] = "neutral" );
+    
+    inner_nodes := Filtered( all_inner_nodes, i -> not labels[1 + i] = "neutral" );
+    
+    pair := MorphismDatum( mor );
+    
+    images_nodes := pair[1];
+    images_edges := pair[2];
+    
+    for i in inner_nodes do
+        
+        label := labels[1 + i];
+        str := Concatenation( str, String( i ) );
+        
+        if label[1] = 'H' then
+            str := Concatenation( str, " [xlabel=\"", String( i ), "\" label=\"\" shape=\"square\" color=\"orange\"" );
+            ## https://graphviz.org/doc/info/colors/
+            if not i in images_nodes then
+               Append( str, " fontcolor=\"azure3\" color=\"lightyellow\"" );
+            fi;
+        elif label[1] = 'X' then
+            if Length( label ) > 1 then
+                str := Concatenation( str, " [xlabel=\"", String( i ), "\" label=\"", label{[ 2 .. Length( label )]}, "\" color=\"tomato\"" );
+            else
+                str := Concatenation( str, " [xlabel=\"", String( i ), "\" label=\"\" color=\"tomato\"" );
+            fi;
+            ## https://graphviz.org/doc/info/colors/
+            if not i in images_nodes then
+               Append( str, " fontcolor=\"azure3\" color=\"lightpink\"" );
+            fi;
+        elif label[1] = 'Z' then
+            if Length( label ) > 1 then
+                str := Concatenation( str, " [xlabel=\"", String( i ), "\" label=\"", label{[ 2 .. Length( label )]}, "\" color=\"lightgreen\"" );
+            else
+                str := Concatenation( str, " [xlabel=\"", String( i ), "\" label=\"\" color=\"lightgreen\"" );
+            fi;
+            ## https://graphviz.org/doc/info/colors/
+            if not i in images_nodes then
+               Append( str, " fontcolor=\"azure3\" color=\"aquamarine\"" );
+            fi;
+        fi;
+        
+        str := Concatenation( str, "]\n" );
+        
+    od;
+    
+    str := Concatenation( str, "\n" );
+        
+    ## the edges from the outer nodes to the circuit cluster
+    outer_edges := Filtered( edges, edge -> not edge[1] in neutral_inner_nodes );
+    
+    for i in outer_edges do
+        str := Concatenation( str, String( i[1] ), " -> ", String( i[2] ) );
+        if not i in images_edges then
+            Append( str, " [fontcolor=\"azure3\" color=\"azure3\"]\n" );
+        fi;
+    od;
+    
+    str := Concatenation( str, "\n" );
+    
+    ## the edges within the circuit cluster
+    inner_edges := Filtered( edges, edge -> edge[1] in neutral_inner_nodes );
+    
+    ## ignore those which are not connected to any other node, see PreCompose( CoevaluationForDual( qubit ), EvaluationForDual( qubit ) )
+    connected_neutral_inner_nodes := Intersection( List( inner_edges, edge -> edge[1] ), neutral_inner_nodes );
+    
+    for i in connected_neutral_inner_nodes do
+        pair := Filtered( inner_edges, edge -> edge[1] = i );
+        Assert( 0, Length( pair ) = 2 );
+        str := Concatenation( str, String( pair[1][2] ), " -> ", String( pair[2][2] ), " [label=\"", String( pair[1][1] ), "\"" );
+        if not i in images_edges then
+            Append( str, " fontcolor=\"azure3\" color=\"azure3\"]\n" );
+        fi;
+    od;
+    
+    str := Concatenation( str, "}\n" );
+    
+    return str;
+    
+end );
+
+MakeShowable( [ "image/svg+xml" ], IsMorphismInCategoryOfZXDiagramsWithoutIO );
+
+##
+InstallOtherMethod( SvgString,
+        "for a monomorphism between ZX-diagram without IO",
+        [ IsMorphismInCategoryOfZXDiagramsWithoutIO ],
+        
+  function ( mor )
+    
+    return DotToSVG( DotVertexLabelledDigraph( mor ) );
+    
+end );
+
+##
 InstallMethod( DotVertexLabelledDigraph,
         "for a ZX-diagram",
         [ IsMorphismInCategoryOfZXDiagrams ],
-
+        
   function( zx_diagram )
-    local str, tuple, input, output, edges, inputs_and_outputs, inp, out, int, labels, input_output, all_inner_nodes, neutral_inner_nodes, inner_nodes,
+    local str, tuple, labels, input, output, edges, inputs_and_outputs, inp, out, int, input_output, all_inner_nodes, neutral_inner_nodes, inner_nodes,
           i, label, outer_edges, inner_edges, connected_neutral_inner_nodes, pair;
     
     str := Concatenation(
@@ -521,7 +772,7 @@ InstallMethod( DotVertexLabelledDigraph,
                    "layout=\"dot\"\n",
                    "node [shape=circle width=0.2 height=0 style=filled fontsize=\"10\"]\n",
                    "edge [dir=none fontsize=\"10\"]\n\n" );
-
+    
     tuple := MorphismDatum( zx_diagram );
     
     labels := tuple[1];
@@ -587,7 +838,7 @@ InstallMethod( DotVertexLabelledDigraph,
                                    "!\" width=0.1 color=\"black\"]\n" ) ) ),
                    "}\n\n" );
     
-    ## the cluster of curcuit nodes
+    ## the cluster of circuit nodes
     str := Concatenation( str, "subgraph cluster_circuit{\n" );
     
     all_inner_nodes := Difference( [ 0 .. Length( labels ) - 1 ], inputs_and_outputs );
@@ -623,7 +874,7 @@ InstallMethod( DotVertexLabelledDigraph,
     
     str := Concatenation( str, "}\n\n" );
     
-    ## the edges from the input and output clusters to the curcuit cluster
+    ## the edges from the input and output clusters to the circuit cluster
     outer_edges := Filtered( edges, edge -> not edge[1] in neutral_inner_nodes );
     
     for i in outer_edges do
@@ -632,14 +883,14 @@ InstallMethod( DotVertexLabelledDigraph,
     
     str := Concatenation( str, "\n" );
     
-    ## the edges from input to ouput bypassing the curcuit cluster
+    ## the edges from input to ouput bypassing the circuit cluster
     for i in int do
         str := Concatenation( str, Concatenation( "i_", String( i ) ), " -> ", Concatenation( "o_", String( i ) ), "\n" );
     od;
     
     str := Concatenation( str, "\n" );
     
-    ## the edges within the curcuit cluster
+    ## the edges within the circuit cluster
     inner_edges := Filtered( edges, edge -> edge[1] in neutral_inner_nodes );
     
     ## ignore those which are not connected to any other node, see PreCompose( CoevaluationForDual( qubit ), EvaluationForDual( qubit ) )

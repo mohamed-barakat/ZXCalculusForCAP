@@ -47,7 +47,32 @@ DeclareGlobalFunction( "ImportFromQGraphString" );
 DeclareGlobalFunction( "ImportFromQGraphFile" );
 
 #! @Description
-#!   Takes a morphism the category of ZX diagrams and returns a dot-file.
+#!   The input is a morphism <A>mor</A> in the category of ZX diagrams.
+#!   The output is the corresponding object in the category of ZX diagrams without IO.
+#! @Arguments mor
+#! @Returns a string
+DeclareOperation( "ForgetIO",
+        [ IsMorphismInCategoryOfZXDiagrams ] );
+
+#! @Description
+#!   The input is an object <A>obj</A> in the category of ZX diagrams without IO.
+#!   The output a string in dot-format.
+#! @Arguments obj
+#! @Returns a string
+DeclareOperation( "DotVertexLabelledDigraph",
+        [ IsObjectInCategoryOfZXDiagramsWithoutIO ] );
+
+#! @Description
+#!   The input is a morphism <A>mor</A> in the category of ZX diagrams without IO.
+#!   The output a string in dot-format.
+#! @Arguments mor
+#! @Returns a string
+DeclareOperation( "DotVertexLabelledDigraph",
+        [ IsMorphismInCategoryOfZXDiagramsWithoutIO ] );
+
+#! @Description
+#!   The input is a morphism <A>mor</A> in the category of ZX diagrams.
+#!   The output a string in dot-format.
 #! @Arguments mor
 #! @Returns a string
 DeclareOperation( "DotVertexLabelledDigraph",

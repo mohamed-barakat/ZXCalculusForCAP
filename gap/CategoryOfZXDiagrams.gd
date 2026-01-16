@@ -161,16 +161,21 @@ DeclareOperation( "ZXCongruenceRule",
 ####################################
 
 #! @Description
-#!   The integer defining an object in a category of ZX-diagrams.
+#!  The integer defining an object in a category of ZX-diagrams.
 #! @Arguments obj
 DeclareAttribute( "AsInteger", IsObjectInCategoryOfZXDiagrams );
 
 #! @Description
-#!   The labeled graph defining a morphism in a category of ZX-diagrams.
+#!  The labeled graph defining a morphism in a category of ZX-diagrams.
 #! @Arguments mor
 DeclareAttribute( "VertexLabeledGraph", IsMorphismInCategoryOfZXDiagrams );
 
-CapJitAddTypeSignature( "VertexLabeledGraph", [ IsMorphismInCategoryOfZXDiagrams ], CapJitDataTypeOfNTupleOf( 4, CapJitDataTypeOfListOf( IsStringRep ), CapJitDataTypeOfListOf( IsBigInt ), CapJitDataTypeOfListOf( IsBigInt ), CapJitDataTypeOfListOf( CapJitDataTypeOfNTupleOf( 2, IsBigInt, IsBigInt ) ) ) );
+CapJitAddTypeSignature( "VertexLabeledGraph", [ IsMorphismInCategoryOfZXDiagrams ],
+        CapJitDataTypeOfNTupleOf( 4,
+                CapJitDataTypeOfListOf( IsStringRep ),
+                CapJitDataTypeOfListOf( IsBigInt ),
+                CapJitDataTypeOfListOf( IsBigInt ),
+                CapJitDataTypeOfListOf( CapJitDataTypeOfNTupleOf( 2, IsBigInt, IsBigInt ) ) ) );
 
 ####################################
 ##
