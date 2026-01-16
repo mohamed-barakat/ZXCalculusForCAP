@@ -4,6 +4,8 @@
 # Reading the implementation part of the package.
 #
 
+ReadPackage( "ZXCalculusForCAP", "gap/CategoryOfZXDiagramsWithoutIO.gi" );
+
 ReadPackage( "ZXCalculusForCAP", "gap/CategoryOfCospans_for_ZXCalculus.gi" );
 
 ReadPackage( "ZXCalculusForCAP", "gap/precompiled_categories/CategoryOfZXDiagrams_precompiled.gi" );
