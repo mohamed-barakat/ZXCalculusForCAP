@@ -126,6 +126,12 @@ GHZ := ( 3 * X_Spider( zx, 0, 1 ) ) * ( id + H + id ) *
 IsWellDefined( GHZ );
 #! true
 
+zx_wo_io := UnderlyingCategoryOfZXDiagramsWithoutIO( zx );
+#! CategoryOfZXDiagramsWithoutIO( CategoryOfDecoratedQuivers( decorating_quiver ) )
+
+GHZ_without_io := ForgetIO( GHZ );
+#! <An object in CategoryOfZXDiagramsWithoutIO( CategoryOfDecoratedQuivers( decorating_quiver ) )>
+
 GHZ_rewritten1 := ZXFusionRule( GHZ, 1 );
 GHZ_rewritten2 := ZXFusionRule( GHZ_rewritten1, 3 );
 GHZ_rewritten3 := ZXFusionRule( GHZ_rewritten2, 6 );
