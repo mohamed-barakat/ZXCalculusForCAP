@@ -4,6 +4,8 @@
 # Reading the declaration part of the package.
 #
 
+ReadPackage( "ZXCalculusForCAP", "gap/CategoryOfZXDiagramsWithoutIO.gd" );
+
 ReadPackage( "ZXCalculusForCAP", "gap/CategoryOfCospans_for_ZXCalculus.gd" );
 
 ReadPackage( "ZXCalculusForCAP", "gap/CategoryOfZXDiagrams.gd" );
